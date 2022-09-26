@@ -37,7 +37,8 @@ const Grouplist = (props) => {
         set(push(ref(db, 'groups/')), {
             GroupName: groupname,
             GroupTagline: grouptagline,
-            GroupAdmin: auth.currentUser.uid
+            GroupAdmin: auth.currentUser.uid,
+            GroupProfilePicture: '',
         }).then(() => {
             setGroupModalOpen(false)
             setRefresh(!refresh)
@@ -54,8 +55,9 @@ const Grouplist = (props) => {
                     GroupName: item.val().GroupName,
                     GroupTagline: item.val().GroupTagline,
                     GroupAdmin: item.val().GroupAdmin,
+                    GroupKey: item.key,
+                    GroupPhotoUrl: item.val().GroupProfilePicture,
                 })
-
 
             })
             setGroupList(grouplist)
@@ -75,11 +77,16 @@ const Grouplist = (props) => {
             <BiDotsVerticalRounded className='dotIcon' />
             <div className='lists'>
                 {groupList.map((item) => {
-                    if (item.GroupAdmin != auth.currentUser.uid){
+                    if (item.GroupAdmin != auth.currentUser.uid) {
                         return (
                             <div className='box' >
                                 <div className='img'>
-                                    <img src='assets/images/GroupImg.png' />
+                                    {item.GroupPhotoUrl
+                                    ?
+                                    <img src={item.GroupPhotoUrl} />
+                                    :
+                                    <img src={'./assets/images/GroupAvaterPic.png'} />
+                    }
                                 </div>
                                 <div className='name'>
                                     <h2>{item.GroupName}</h2>
@@ -91,7 +98,7 @@ const Grouplist = (props) => {
                             </div>
                         )
                     }
-                    
+
 
                 })}
 

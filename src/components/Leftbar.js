@@ -3,20 +3,23 @@ import { BsGear } from 'react-icons/bs';
 import { RiLogoutBoxRLine } from 'react-icons/ri';
 import { AiOutlineMessage, AiOutlineHome, AiOutlineBell, AiOutlineCloudUpload } from 'react-icons/ai';
 import { getAuth, signOut, onAuthStateChanged, updateProfile, getUser } from "firebase/auth";
+import { getDatabase, ref as fd_ref, update } from "firebase/database";
 import { Link, useNavigate } from 'react-router-dom'
 import { Modal, Box, Typography } from '@mui/material'
 import SendIcon from '@mui/icons-material/Send';
 import LoadingButton from '@mui/lab/LoadingButton'
-import { getStorage, ref, uploadString, getDownloadURL } from "firebase/storage";
+import { getStorage, ref as fs_ref, uploadString, getDownloadURL } from "firebase/storage";
 
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
 
 const Leftbar = (props) => {
 
+  const db = getDatabase()
   const auth = getAuth();
   const currentUser = auth.currentUser;
   const storage = getStorage();
+
 
   let navigate = useNavigate();
 
@@ -74,11 +77,11 @@ const Leftbar = (props) => {
     };
     reader.readAsDataURL(files[0]);
   }
-
+  
 
   const getCropData = () => {
     setLoading(true)
-    const storageRef = ref(storage, auth.currentUser.uid);
+    const storageRef = fs_ref(storage, auth.currentUser.uid);
     const image = cropper.getCroppedCanvas().toDataURL()
     uploadString(storageRef, image, 'data_url').then((snapshot) => {
       getDownloadURL(storageRef).then((url) => {
@@ -89,6 +92,11 @@ const Leftbar = (props) => {
           setOpenProfilePic(false)
           setLoading(false)
           setImage('')
+
+          update(fd_ref(db, "users/"+auth.currentUser.uid),{
+            userProfilePicture: auth.currentUser.photoURL,
+          })
+
         }).catch((error) => {
           console.log(error)
         });
@@ -97,6 +105,7 @@ const Leftbar = (props) => {
 
     });
   };
+
 
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {

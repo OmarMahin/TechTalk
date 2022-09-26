@@ -1,40 +1,49 @@
 import React, { useEffect, useState } from 'react'
 import { getDatabase, ref, onValue, set, push } from "firebase/database";
-import { BiDotsVerticalRounded} from 'react-icons/bi'
-import {FaUserFriends} from 'react-icons/fa'
+import { BiDotsVerticalRounded } from 'react-icons/bi'
+import { FaUserFriends } from 'react-icons/fa'
 import { getAuth } from "firebase/auth";
 import { Button } from 'react-bootstrap';
+import { getStorage, ref as fs_ref, uploadString, getDownloadURL } from "firebase/storage";
 
 
 const Userlist = () => {
 
 
     const db = getDatabase();
+    const storage = getStorage()
     const auth = getAuth();
 
     let [userList, setUserList] = useState([])
     let [friendReqs, setFriendReqs] = useState([])
     let [friends, setFriends] = useState([])
     let [change, setChange] = useState(false)
+    let [profilePic, setProfilePic] = useState('')
+
+
 
     useEffect(() => {
-        console.log("Refreshed")
         let list = []
         const userRef = ref(db, 'users/')
+
         onValue(userRef, (snapshot) => {
             snapshot.forEach((item) => {
                 list.push({
                     username: item.val().username,
                     email: item.val().email,
-                    id: item.key
+                    id: item.key,
+                    userProfilePicture: item.val().userProfilePicture
                 })
             })
 
             setUserList(list)
+            
+            
 
         });
 
     }, [change])
+
 
 
 
@@ -45,6 +54,7 @@ const Userlist = () => {
         let friends = []
 
         onValue(ref(db, 'friendRequests/'), (snapshot) => {
+
             snapshot.forEach(item => {
                 friendReqLists.push(item.val().recieverId + item.val().senderId)
             })
@@ -53,6 +63,7 @@ const Userlist = () => {
         })
 
         onValue(ref(db, 'friends/'), (snapshot) => {
+
             snapshot.forEach(item => {
                 friends.push(item.val().receiverId + item.val().senderId)
             })
@@ -66,11 +77,13 @@ const Userlist = () => {
 
 
     let handleFriendRequest = (info) => {
+
         set(push(ref(db, 'friendRequests')), {
             recieverName: info.username,
             recieverId: info.id,
             senderName: auth.currentUser.displayName,
-            senderId: auth.currentUser.uid
+            senderId: auth.currentUser.uid,
+
         })
         setChange(!change)
     }
@@ -86,13 +99,24 @@ const Userlist = () => {
 
                 {userList.map((item) => {
 
+
+
                     return (
+
 
                         item.id != auth.currentUser.uid &&
                         <div className='box'>
 
                             <div className='img'>
-                                <img src='assets/images/FriendImg.png' />
+                                {
+                                    item.userProfilePicture == "none"
+                                        ?
+                                        <img src='./assets/images/avaterPic.png' />
+                                        :
+                                        <img src={item.userProfilePicture} />
+                                }
+
+
                             </div>
                             <div className='name'>
                                 <h2>{item.username}</h2>
@@ -103,8 +127,8 @@ const Userlist = () => {
                             {friends.includes(item.id + auth.currentUser.uid) || friends.includes(auth.currentUser.uid + item.id)
                                 ?
                                 <div className='button'>
-                                        <button><FaUserFriends/></button>
-                                    </div>
+                                    <button><FaUserFriends /></button>
+                                </div>
                                 :
 
                                 friendReqs.includes(item.id + auth.currentUser.uid) || friendReqs.includes(auth.currentUser.uid + item.id)

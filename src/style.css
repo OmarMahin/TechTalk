@@ -870,6 +870,12 @@ a{
     position: relative;
 }
 
+.chats .topArea .currentUser .profileImage img{
+    height: 75px;
+    width: 75px;
+    border-radius: 50%;
+}
+
 .chats .topArea .currentUser .profileImage .online{
     position: absolute;
     bottom: 0;
@@ -960,6 +966,20 @@ a{
     position: relative;
 }
 
+.chats .sendPart .inputBlock{
+    width: 90%;
+    height: 60px;
+    border-radius: 10px;
+    border: 0;
+    background-color: rgb(229 171 171);
+    z-index: -1;
+}
+
+.chats .sendPart .inputBlock input{
+    background-color: rgb(229 171 171)!important;
+    
+}
+
 .chats .sendPart .input input{
 
     width: 90%;
@@ -968,6 +988,7 @@ a{
     border: 0;
     padding-left: 20px;
     background-color: #EAEAEA;
+    z-index: 1;
 }
 
 .chats .sendPart .camera{

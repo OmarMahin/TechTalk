@@ -14,10 +14,11 @@ const Friends = (props) => {
     const dispatch = useDispatch()
 
     let [friendList, setFriendList] = useState([])
+    let [friendUserList, setFriendUserList] = useState([])
     let [reset, setReset] = useState(false)
 
     let blockHandle = (value) => {
-        setReset(!reset)
+        //setReset(!reset)
         if (value.blocked) {
             update(ref(db, 'friends/' + value.dataKey), {
                 block: false,
@@ -25,57 +26,98 @@ const Friends = (props) => {
             })
         }
         else {
-            let currentUser = auth.currentUser.uid
-            if (currentUser == value.receiverId) {
-                update(ref(db, 'friends/' + value.dataKey), {
-                    block: true,
-                    userBlocked: value.senderId
-                })
-            }
-            else if (currentUser == value.senderId) {
-                update(ref(db, 'friends/' + value.dataKey), {
-                    block: true,
-                    userBlocked: value.receiverId
-                })
-            }
+            // let currentUser = auth.currentUser.uid
+            // if (currentUser == value.receiverId) {
+            //     update(ref(db, 'friends/' + value.dataKey), {
+            //         block: true,
+            //         userBlocked: value.senderId
+            //     })
+            // }
+            // else if (currentUser == value.senderId) {
+            //     update(ref(db, 'friends/' + value.dataKey), {
+            //         block: true,
+            //         userBlocked: value.receiverId
+            //     })
+            // }
+
+            update(ref(db, 'friends/' + value.dataKey), {
+                block: true,
+                userBlocked: value.id
+            })
 
         }
     }
 
     let handleActiveUser = (item) => {
         let userInfo = {}
-        if (item.receiverId == auth.currentUser.uid) {
-            userInfo.status = "single"
-            userInfo.id = item.senderId
-            userInfo.name = item.senderName
-        }
-        else {
-            userInfo.status = "single"
-            userInfo.id = item.receiverId
-            userInfo.name = item.receiverName
-        }
+        // if (item.receiverId == auth.currentUser.uid) {
+        //     userInfo.status = "single"
+        //     userInfo.id = item.senderId
+        //     userInfo.name = item.senderName
+        //     userInfo.photoUrl = item.senderPhotoUrl
+        // }
+        // else {
+        //     userInfo.status = "single"
+        //     userInfo.id = item.receiverId
+        //     userInfo.name = item.receiverName
+        //     userInfo.photoUrl = item.receiverPhotoUrl
+        // }
+
+        userInfo.status = "single"
+        userInfo.id = item.id
+        userInfo.name = item.name
+        userInfo.photoUrl = item.PhotoUrl
+        userInfo.blocked = item.blocked
         dispatch(activeChat(userInfo))
     }
 
 
     useEffect(() => {
-        let friends = []
+
 
         onValue(ref(db, 'friends/'), (snapshot) => {
+            let friends = []
             snapshot.forEach(item => {
 
                 if (item.val().receiverId == auth.currentUser.uid || item.val().senderId == auth.currentUser.uid) {
-                    friends.push({
-                        receiverName: item.val().receiver_name,
-                        receiverId: item.val().receiverId,
-                        senderName: item.val().sender_name,
-                        senderId: item.val().senderId,
-                        dataKey: item.key,
-                        date: item.val().accDate,
-                        blocked: item.val().block,
-                        userBlocked: item.val().userBlocked
+                    let userInfo = {}
 
-                    })
+                    userInfo.dataKey = item.key
+                    userInfo.date = item.val().accDate
+                    userInfo.blocked = item.val().block
+                    userInfo.userBlocked = item.val().userBlocked
+
+                    if (item.val().receiverId == auth.currentUser.uid) {
+                        onValue(ref(db, 'users/' + item.val().senderId), (snapshot) => {
+                            userInfo.id = item.val().senderId
+                            userInfo.name = snapshot.val().username
+                            userInfo.PhotoUrl = snapshot.val().userProfilePicture
+                        })
+                    }
+
+                    else if (item.val().senderId == auth.currentUser.uid) {
+                        onValue(ref(db, 'users/' + item.val().receiverId), (snapshot) => {
+                            userInfo.id = item.val().receiverId
+                            userInfo.name = snapshot.val().username
+                            userInfo.PhotoUrl = snapshot.val().userProfilePicture
+                        })
+                    }
+
+                    // onValue(ref(db, 'users/' + item.val().senderId), (snapshot) => {
+                    //     userInfo.senderId = item.val().senderId
+                    //     userInfo.senderName = snapshot.val().username
+                    //     userInfo.senderPhotoUrl = snapshot.val().userProfilePicture
+                    // })
+
+                    // onValue(ref(db, 'users/' + item.val().receiverId), (snapshot) => {
+
+                    //     userInfo.receiverId = item.val().receiverId
+                    //     userInfo.receiverName = snapshot.val().username
+                    //     userInfo.receiverPhotoUrl = snapshot.val().userProfilePicture
+                    // })
+
+                    friends.push(userInfo)
+
                 }
 
 
@@ -84,6 +126,8 @@ const Friends = (props) => {
             setFriendList(friends)
 
         })
+
+
 
     }, [reset])
 
@@ -103,16 +147,25 @@ const Friends = (props) => {
                                 if (props.item == 'message') { handleActiveUser(item) }
                             }}>
                                 <div className='img'>
-                                    <img src='assets/images/FriendImg.png' />
+                                    {/* {(item.senderId == auth.currentUser.uid)
+                                        ?
+
+                                        <img src={item.receiverPhotoUrl} />
+                                        :
+                                        <img src={item.senderPhotoUrl} />
+                                    } */}
+
+                                    <img src={item.PhotoUrl} />
                                 </div>
                                 <div className='name'>
-                                    {(item.senderId == auth.currentUser.uid)
+                                    {/* {(item.senderId == auth.currentUser.uid)
                                         ?
 
                                         <h2>{item.receiverName}</h2>
                                         :
                                         <h2>{item.senderName}</h2>
-                                    }
+                                    } */}
+                                    <h2 >{item.name}</h2>
                                     <h4>Hi Guys, Wassup!</h4>
                                 </div>
                                 <div className='button'>

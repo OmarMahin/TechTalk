@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Button, Grid, TextField, Collapse, Alert, IconButton } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close';
 import { getDatabase, ref, set } from "firebase/database";
+import { getStorage, ref as fs_ref, uploadString, getDownloadURL } from "firebase/storage";
 
 import { getAuth, createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "firebase/auth";
 
 const Registration = () => {
 
     const auth = getAuth();
+    const storage = getStorage()
     let navigate = useNavigate();
     const db = getDatabase();
 
@@ -73,9 +75,12 @@ const Registration = () => {
                             displayName: name
                           }).then(() => {
                             set(ref(db, 'users/' + auth.currentUser.uid), {
-                                username: name,
+                                username: auth.currentUser.displayName,
                                 email: email,
+                                userProfilePicture: "none",
                               });
+
+                            uploadString(fs_ref(storage,auth.currentUser.uid),"./assets/images/avaterPic.png", "data_url")
                           }).catch((error) => {
                             console.log("Error")
                             console.log(error)

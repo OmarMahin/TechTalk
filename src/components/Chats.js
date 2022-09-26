@@ -41,6 +41,7 @@ const Chats = () => {
 
     }
 
+
     useEffect(() => {
         onValue(ref(db, 'singleMessages'), (snapshot) => {
             let messages = []
@@ -59,7 +60,7 @@ const Chats = () => {
             <div className='topArea'>
                 <div className='currentUser'>
                     <div className='profileImage'>
-                        <img src='assets/images/FriendImg.png' />
+                        <img src={activeUser.photoUrl} />
                         <div className='online'></div>
                     </div>
                     <div className='userInfo'>
@@ -104,7 +105,7 @@ const Chats = () => {
             </div>
 
             <div className='sendPart'>
-                <div className='input'>
+                <div className={activeUser.blocked ? 'input inputBlock' : 'input'}>
                     <input type={'text'} placeholder='Message' onChange={handleMessage} value={msg}></input>
                     <AiOutlineCamera className='camera' />
                 </div>
