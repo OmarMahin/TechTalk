@@ -175,7 +175,7 @@ const Leftbar = (props) => {
                 <img className='currentPic' src={auth.currentUser.photoURL} alt='profilePic' />
 
             }
-
+            
             <input type={"file"} className='picUpload' onChange={(item) => handlePicUpload(item)}></input>
 
             <Cropper

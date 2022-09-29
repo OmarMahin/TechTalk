@@ -141,13 +141,13 @@ const Chats = () => {
                                 ?
                                 item.message
                                     ?
-                                    <div style={messageSend} className='messageBox'>
+                                    <div style={messageSend} className='messageBox send'>
                                         <p style={messageSendBackground} >{item.message}</p>
                                         <p style={dateSend} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").fromNow()}</p>
                                     </div>
                                     :
 
-                                    <div style={messageSend} className='messageBox'>
+                                    <div style={messageSend} className='messageBox send'>
                                         <div className='imgMessage' style={messageSendBackground}>
                                             <img src={item.image} ></img>
                                         </div>
@@ -158,12 +158,12 @@ const Chats = () => {
                                 :
                                 item.message
                                     ?
-                                    <div style={messageReceive} className='messageBox'>
+                                    <div style={messageReceive} className='messageBox receive'>
                                         <p style={messageReceiveBackground} >{item.message}</p>
                                         <p style={dateReceive} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").fromNow()}</p>
                                     </div>
                                     :
-                                    <div style={messageReceive} className='messageBox'>
+                                    <div style={messageReceive} className='messageBox receive'>
                                         <div className='imgMessage' style={messageReceiveBackground}>
                                             <img src={item.image} ></img>
                                         </div>

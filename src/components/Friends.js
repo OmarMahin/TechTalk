@@ -133,7 +133,7 @@ const Friends = (props) => {
 
     return (
         <div className='groupList'>
-            <h2>Friends</h2>
+            <h2>Friends: {friendList.length}</h2>
             <BiDotsVerticalRounded className='dotIcon' />
             <div className={(props.item == "message" ? 'lists friendlist messageFriendlist' : 'lists friendlist')}>
 
