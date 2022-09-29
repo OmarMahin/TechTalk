@@ -44,7 +44,7 @@ a{
 }
 
 
-#registration .right .css-1wc848c-MuiFormHelperText-root {
+#registration .right .inputBox p {
     font-family: 'Nunito', sans-serif;
     font-size: 17px;
     color: red;
@@ -158,7 +158,7 @@ a{
     border-bottom: 1px solid rgba(0, 0, 0, 0.23);
 }
 
-#login .left .css-1wc848c-MuiFormHelperText-root {
+#login .left .loginInputBox p {
     font-family: 'Nunito', sans-serif;
     font-size: 17px;
     color: red;
