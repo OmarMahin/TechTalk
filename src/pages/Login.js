@@ -52,7 +52,7 @@ const Login = () => {
 
                 let errorCode = error.code
 
-                if (errorCode.includes("password") || errorCode.includes("user")) {
+                if (errorCode.includes("password") || errorCode.includes("user") || errorCode.includes("email")) {
                     setPassErr("The email / password is wrong. Please try again.")
                     setOpen("True")
                 }
@@ -109,9 +109,6 @@ const Login = () => {
                 // The AuthCredential type that was used.
                 const credential = FacebookAuthProvider.credentialFromError(err);
                 console.log(err.message)
-
-                
-                // ...
             });
 
     }
