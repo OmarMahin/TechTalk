@@ -161,6 +161,7 @@ const Login = () => {
                             </Collapse>
 
                             <TextField
+                                className='loginInputBox'
                                 helperText={err_email}
                                 id="demo-helper-text-aligned"
                                 label="Email Address"
@@ -170,6 +171,7 @@ const Login = () => {
                             <br />
                             <div className='eye'>
                                 <TextField
+                                    className='loginInputBox'
                                     helperText={err_pass}
                                     id="demo-helper-text-aligned"
                                     label="Password"

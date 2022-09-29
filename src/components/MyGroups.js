@@ -54,7 +54,6 @@ const MyGroups = () => {
     const getCropData = () => {
         setLoading(true)
         const storageRef = fs_ref(storage, currentGroupId);
-        console.log(storageRef)
         const image = cropper.getCroppedCanvas().toDataURL()
         uploadString(storageRef, image, 'data_url').then((snapshot) => {
             getDownloadURL(storageRef).then((url) => {

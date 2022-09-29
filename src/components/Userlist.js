@@ -3,30 +3,26 @@ import { getDatabase, ref, onValue, set, push } from "firebase/database";
 import { BiDotsVerticalRounded } from 'react-icons/bi'
 import { FaUserFriends } from 'react-icons/fa'
 import { getAuth } from "firebase/auth";
-import { Button } from 'react-bootstrap';
-import { getStorage, ref as fs_ref, uploadString, getDownloadURL } from "firebase/storage";
 
 
 const Userlist = () => {
 
 
     const db = getDatabase();
-    const storage = getStorage()
     const auth = getAuth();
 
     let [userList, setUserList] = useState([])
     let [friendReqs, setFriendReqs] = useState([])
     let [friends, setFriends] = useState([])
     let [change, setChange] = useState(false)
-    let [profilePic, setProfilePic] = useState('')
-
-
 
     useEffect(() => {
+
         let list = []
         const userRef = ref(db, 'users/')
 
         onValue(userRef, (snapshot) => {
+            
             snapshot.forEach((item) => {
                 list.push({
                     username: item.val().username,
@@ -34,8 +30,10 @@ const Userlist = () => {
                     id: item.key,
                     userProfilePicture: item.val().userProfilePicture
                 })
+                
+                
             })
-
+            
             setUserList(list)
             
             

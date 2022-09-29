@@ -87,6 +87,11 @@ a{
 
 }
 
+#registration .right .register .inputBox{
+    width: 368px;
+    margin-top: 42px;
+}
+
 
 /* Login Part */
 
@@ -141,7 +146,7 @@ a{
 }
 
 
-#login .left .css-1u3bzj6-MuiFormControl-root-MuiTextField-root {
+#login .left .loginInputBox {
     margin-top: 60px;
     width: 372px;
 }
@@ -667,6 +672,48 @@ a{
     align-items: center;
 }
 
+.uploadImgMessage{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.uploadImgMessage .createBox{
+    text-align: center;
+    background-color: #fff;
+    padding: 30px 70px 50px;
+    
+}
+
+.uploadImgMessage .createBox #modal-modal-description{
+    text-align: left;
+}
+
+.uploadImgMessage .createBox #modal-modal-description .progressBar{
+    position: relative;
+    top: 38px;
+}
+
+.uploadImgMessage .createBox h2{
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 50px;
+}
+
+.uploadImgMessage .createBox button{
+    margin-top: 30px;
+    background-color: #5F35F5;
+    color: #fff;
+    padding: 10px 30px;
+    border: 0;
+    border-radius: 5px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+
 .groupmodal .createBox{
     text-align: center;
     background-color: #fff;
@@ -706,6 +753,7 @@ a{
     font-size: 18px;
     font-weight: 600;
 }
+
 
 
 .dark{
@@ -931,8 +979,8 @@ a{
 }
 
 .chats .messages .messageBox .imgMessage{
-    padding: 4px;
-    width: 200px;
+    border: 6px solid;
+    width: 250px;
     margin-bottom: 15px;
 }
 

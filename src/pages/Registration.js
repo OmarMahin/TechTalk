@@ -73,21 +73,21 @@ const Registration = () => {
                         console.log("Email Send")
                         updateProfile(auth.currentUser, {
                             displayName: name
-                          }).then(() => {
+                        }).then(() => {
                             set(ref(db, 'users/' + auth.currentUser.uid), {
                                 username: auth.currentUser.displayName,
                                 email: email,
                                 userProfilePicture: "none",
-                              });
+                            });
 
-                            uploadString(fs_ref(storage,auth.currentUser.uid),"./assets/images/avaterPic.png", "data_url")
-                          }).catch((error) => {
+                            uploadString(fs_ref(storage, auth.currentUser.uid), "./assets/images/avaterPic.png", "data_url")
+                        }).catch((error) => {
                             console.log("Error")
                             console.log(error)
-                          });
+                        });
                     });
-                
-                    
+
+
 
             }).catch((error) => {
                 const errorCode = error.code;
@@ -134,37 +134,37 @@ const Registration = () => {
                             </div>
 
                             <TextField
+                                className='inputBox'
                                 helperText={err_name}
                                 id="demo-helper-text-misaligned"
                                 label="Full Name"
-                                style={{ width: '368px', marginTop: '42px' }}
                                 type="text"
                                 onChange={(input) => { setName(input.target.value) }}
                             />
                             <br />
                             <TextField
+                                className='inputBox'
                                 helperText={err_email}
                                 id="demo-helper-text-misaligned"
                                 label="Email address"
-                                style={{ width: '368px', marginTop: '42px' }}
                                 type="email"
                                 onChange={(input) => { setEmail(input.target.value) }}
                             />
                             <br />
                             <TextField
+                                className='inputBox'
                                 helperText={err_pass}
                                 id="demo-helper-text-misaligned"
                                 label="Password"
-                                style={{ width: '368px', marginTop: '42px' }}
                                 type="password"
                                 onChange={(input) => { setPassword(input.target.value) }}
                             />
                             <br />
                             <TextField
+                                className='inputBox'
                                 helperText={err_cpass}
                                 id="demo-helper-text-misaligned"
                                 label="Confirm Password"
-                                style={{ width: '368px', marginTop: '42px' }}
                                 type="password"
                                 onChange={(input) => { setCpassword(input.target.value) }}
                             />
