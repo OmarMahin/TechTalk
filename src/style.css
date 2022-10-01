@@ -47,7 +47,7 @@ a{
 #registration .right .inputBox p {
     font-family: 'Nunito', sans-serif;
     font-size: 17px;
-    color: red;
+    color: red !important;
     font-weight: 400;
     margin: 0;
     position: absolute;
@@ -161,7 +161,7 @@ a{
 #login .left .loginInputBox p {
     font-family: 'Nunito', sans-serif;
     font-size: 17px;
-    color: red;
+    color: red !important;
     font-weight: 400;
     margin: 0;
     position: absolute;
