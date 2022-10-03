@@ -690,9 +690,35 @@ a{
     text-align: left;
 }
 
-.uploadImgMessage .createBox #modal-modal-description .progressBar{
+.uploadImgMessage .createBox #modal-modal-description .progress {
+    width: 100%;
     position: relative;
-    top: 38px;
+    background-color: transparent;
+    top: 19px;
+    display: flex;
+
+}
+
+
+.uploadImgMessage .createBox #modal-modal-description .progress .progressBar{
+    position: absolute;
+    width: 77%;
+    padding-top: 5px;
+    z-index: 9;
+    top: 8px;
+    background-color: #5F35F5;
+
+}
+
+.uploadImgMessage .createBox #modal-modal-description .progress .value{
+    width: 20%;
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #000;
 }
 
 .uploadImgMessage .createBox h2{

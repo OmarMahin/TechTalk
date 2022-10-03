@@ -39,7 +39,7 @@ const Chats = () => {
                     senderName: auth.currentUser.displayName,
                     receiverId: activeUser.id,
                     receiverName: activeUser.name,
-                    date: `${new Date().getFullYear()}-${new Date().getMonth()+1}-${new Date().getDate()}-${new Date().getHours()}-${new Date().getMinutes()}-${new Date().getSeconds()}`,
+                    date: `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}-${new Date().getHours()}-${new Date().getMinutes()}-${new Date().getSeconds()}`,
                     message: msg
                 }).then(() => {
                     setMsg('')
@@ -74,20 +74,20 @@ const Chats = () => {
             () => {
 
                 getDownloadURL(upload.snapshot.ref).then((downloadURL) => {
-                    if (file != ""){
+                    if (file != "") {
                         set(push(ref(db, "singleMessages")), {
                             senderId: auth.currentUser.uid,
                             senderName: auth.currentUser.displayName,
                             receiverId: activeUser.id,
                             receiverName: activeUser.name,
-                            date: `${new Date().getFullYear()}-${new Date().getMonth()+1}-${new Date().getDate()}-${new Date().getHours()}-${new Date().getMinutes()}-${new Date().getSeconds()}`,
+                            date: `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}-${new Date().getHours()}-${new Date().getMinutes()}-${new Date().getSeconds()}`,
                             image: downloadURL
                         }).then(() => {
                             setUploadModalOpen(false)
                             setFile("")
                             setProgress("")
                         })
-                    }               
+                    }
                 });
             }
         )
@@ -143,7 +143,7 @@ const Chats = () => {
                                     ?
                                     <div style={messageSend} className='messageBox send'>
                                         <p style={messageSendBackground} >{item.message}</p>
-                                        <p style={dateSend} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").fromNow()}</p>
+                                        <p style={dateSend} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
                                     </div>
                                     :
 
@@ -151,7 +151,7 @@ const Chats = () => {
                                         <div className='imgMessage' style={messageSendBackground}>
                                             <img src={item.image} ></img>
                                         </div>
-                                        <p style={dateSend} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").fromNow()}</p>
+                                        <p style={dateSend} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
                                     </div>
 
 
@@ -160,14 +160,14 @@ const Chats = () => {
                                     ?
                                     <div style={messageReceive} className='messageBox receive'>
                                         <p style={messageReceiveBackground} >{item.message}</p>
-                                        <p style={dateReceive} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").fromNow()}</p>
+                                        <p style={dateReceive} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
                                     </div>
                                     :
                                     <div style={messageReceive} className='messageBox receive'>
                                         <div className='imgMessage' style={messageReceiveBackground}>
                                             <img src={item.image} ></img>
                                         </div>
-                                        <p style={dateReceive} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").fromNow()}</p>
+                                        <p style={dateReceive} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
                                     </div>
 
                             :
@@ -207,12 +207,16 @@ const Chats = () => {
                     <Typography id="modal-modal-description" sx={{ mt: 2 }}>
 
                         <input type={"file"} onChange={handleUploadImage}></input>
-                        
+
+
                         {progress != ""
-                        ?
-                        <LinearProgress variant="determinate" value={progress} className="progressBar"/>
-                        :
-                        ""
+                            ?
+                            <div className='progress'>
+                                <LinearProgress variant="determinate" value={progress} className="progressBar" />
+                                <span className='value'>{progress}%</span>
+                            </div>
+                            :
+                            ""
                         }
 
                         <br />
