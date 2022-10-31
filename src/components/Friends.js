@@ -26,19 +26,6 @@ const Friends = (props) => {
             })
         }
         else {
-            // let currentUser = auth.currentUser.uid
-            // if (currentUser == value.receiverId) {
-            //     update(ref(db, 'friends/' + value.dataKey), {
-            //         block: true,
-            //         userBlocked: value.senderId
-            //     })
-            // }
-            // else if (currentUser == value.senderId) {
-            //     update(ref(db, 'friends/' + value.dataKey), {
-            //         block: true,
-            //         userBlocked: value.receiverId
-            //     })
-            // }
 
             update(ref(db, 'friends/' + value.dataKey), {
                 block: true,
@@ -50,18 +37,6 @@ const Friends = (props) => {
 
     let handleActiveUser = (item) => {
         let userInfo = {}
-        // if (item.receiverId == auth.currentUser.uid) {
-        //     userInfo.status = "single"
-        //     userInfo.id = item.senderId
-        //     userInfo.name = item.senderName
-        //     userInfo.photoUrl = item.senderPhotoUrl
-        // }
-        // else {
-        //     userInfo.status = "single"
-        //     userInfo.id = item.receiverId
-        //     userInfo.name = item.receiverName
-        //     userInfo.photoUrl = item.receiverPhotoUrl
-        // }
 
         userInfo.status = "single"
         userInfo.id = item.id
@@ -102,20 +77,6 @@ const Friends = (props) => {
                             userInfo.PhotoUrl = snapshot.val().userProfilePicture
                         })
                     }
-
-                    // onValue(ref(db, 'users/' + item.val().senderId), (snapshot) => {
-                    //     userInfo.senderId = item.val().senderId
-                    //     userInfo.senderName = snapshot.val().username
-                    //     userInfo.senderPhotoUrl = snapshot.val().userProfilePicture
-                    // })
-
-                    // onValue(ref(db, 'users/' + item.val().receiverId), (snapshot) => {
-
-                    //     userInfo.receiverId = item.val().receiverId
-                    //     userInfo.receiverName = snapshot.val().username
-                    //     userInfo.receiverPhotoUrl = snapshot.val().userProfilePicture
-                    // })
-
                     friends.push(userInfo)
 
                 }

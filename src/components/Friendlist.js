@@ -53,6 +53,11 @@ const Friendlist = () => {
             userBlocked: "none"
         }).then(() => {
             remove(ref(db, 'friendRequests/' + info.dataKey)).then(() => { setReqAccept(!ReqAccept) })
+            set(push(ref(db, 'notification/')), {
+                message: `"${auth.currentUser.displayName}"` + " has to accepted your friend request",
+                receieve: info.senderId,
+                seen: "unseen",
+            })
 
         })
 

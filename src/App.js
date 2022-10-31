@@ -13,6 +13,7 @@ import { collection } from 'firebase/firestore'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import ResetPassword from './pages/ResetPassword';
+import Notifications from './pages/Notifications';
 
 
 
@@ -65,6 +66,7 @@ function App() {
           <Route path="/login" element={<Login />}></Route>
           <Route path="/home" element={<Home />}></Route>
           <Route path="/message" element={<Message />}></Route>
+          <Route path="/notifications" element={<Notifications />}></Route>
           <Route path="/test" element={<Test />}></Route>
           <Route path="/resetpassword" element={<ResetPassword />}></Route>
         </Routes>

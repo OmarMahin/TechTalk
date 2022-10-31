@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { BiDotsVerticalRounded, BiDotsHorizontalRounded } from 'react-icons/bi'
 import { getDatabase, ref, onValue, set, push, remove, update } from "firebase/database";
 import { getAuth, getUser } from "firebase/auth";
-import { Modal, Box, Typography } from '@mui/material'
+import { Modal, Box, Typography, List, ListItem, ListItemAvatar, Avatar, ListItemText, Alert } from '@mui/material'
 import LoadingButton from '@mui/lab/LoadingButton'
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
@@ -16,12 +16,17 @@ const MyGroups = () => {
 
 
     let [groupList, setGroupList] = useState([])
+    let [groupJoinReqList, setGroupJoinReqList] = useState([])
     let [loading, setLoading] = useState(false)
     let [groupPhoto, setGroupPhoto] = useState('')
     let [image, setImage] = useState('');
     let [cropper, setCropper] = useState();
     let [openGroupPic, setOpenGroupPic] = useState(false)
+    let [openGroupReq, setOpenGroupReq] = useState(false)
     let [currentGroupId, setcurrentGroupId] = useState('')
+    let [currentGroupReqId, setcurrentGroupReqId] = useState('')
+    let [pending, setPending] = useState([])
+
 
     let handleGroupPicClose = () => {
         setcurrentGroupId('')
@@ -33,6 +38,24 @@ const MyGroups = () => {
         setcurrentGroupId(item.GroupKey)
         setGroupPhoto(item.GroupPhotoUrl)
         setOpenGroupPic(true)
+    }
+
+    let openGroupReqModal = (item) => {
+        setOpenGroupReq(true)
+        setcurrentGroupReqId(item.GroupKey)
+        let pen = []
+        groupJoinReqList.map((member) => {
+            if (member.GroupAdminId == auth.currentUser.uid && item.GroupKey == member.GroupKey) {
+                pen.push(member)
+            }
+        })
+
+        setPending(pen)
+    }
+
+    let handleGroupReqClose = () => {
+        setOpenGroupReq(false)
+        setcurrentGroupReqId("")
     }
 
     let handlePicUpload = (e) => {
@@ -48,6 +71,38 @@ const MyGroups = () => {
             setImage(reader.result);
         };
         reader.readAsDataURL(files[0]);
+    }
+
+    let handleRejectRequest = (item, index) => {
+        pending.splice(index, 1)
+        let removePending = ""
+        onValue(ref(db, "groups/" + item.GroupKey), (item) => {
+            removePending = item.val().Pending
+        })
+        update(ref(db, "groups/" + item.GroupKey), {
+            Pending: removePending.replace("," + item.MemberId, '')
+        })
+
+    }
+
+    let handleAcceptRequest = (item, index) => {
+        pending.splice(index, 1)
+        let removePending = ""
+        let addMember = ""
+        onValue(ref(db, "groups/" + item.GroupKey), (item) => {
+            removePending = item.val().Pending
+            addMember = item.val().Members
+        })
+        update(ref(db, "groups/" + item.GroupKey), {
+            Members: addMember + "," + item.MemberId,
+            Pending: removePending.replace("," + item.MemberId, '')
+        })
+
+        set(push(ref(db, 'notification/')), {
+            message: `"${auth.currentUser.displayName}"` + " has to accepted your request to join the group "+ `"${item.GroupName}"`,
+            receieve: item.MemberId,
+            seen: "unseen",
+        })
     }
 
 
@@ -78,6 +133,7 @@ const MyGroups = () => {
 
         onValue(ref(db, 'groups'), (snapshot) => {
             let grouplist = []
+            let pendingMembers = []
             snapshot.forEach((item) => {
                 grouplist.push({
                     GroupName: item.val().GroupName,
@@ -87,11 +143,39 @@ const MyGroups = () => {
                     GroupPhotoUrl: item.val().GroupProfilePicture,
                 })
 
+                item.val().Pending.split(",").map((member) => {
+                    if (member != "") {
+                        let memberInfo = {}
+                        
+                        memberInfo.GroupAdminId = item.val().GroupAdmin
+                        memberInfo.GroupKey = item.key
+                        memberInfo.MemberId = member
+                        memberInfo.GroupTagline = item.val().GroupTagline
+                        memberInfo.GroupName = item.val().GroupName
+
+
+                        onValue(ref(db, 'users/' + member), (item2) => {
+
+                            memberInfo.MemberName = item2.val().username
+                            memberInfo.MemberProfilePic = item2.val().userProfilePicture
+                        })
+
+                        pendingMembers.push(memberInfo)
+
+                    }
+
+                })
+
+                
+
+
             })
             setGroupList(grouplist)
+            setGroupJoinReqList(pendingMembers)
         })
 
     }, [])
+
 
     return (
         <div className='groupList'>
@@ -107,12 +191,12 @@ const MyGroups = () => {
                                     <div className='img'>
                                         {
                                             item.GroupPhotoUrl
-                                            ?
-                                            <img src={item.GroupPhotoUrl} />
-                                            :
-                                            <img src={'./assets/images/GroupAvaterPic.png'} />
+                                                ?
+                                                <img src={item.GroupPhotoUrl} />
+                                                :
+                                                <img src={'./assets/images/GroupAvaterPic.png'} />
                                         }
-                                    
+
 
                                     </div>
                                     <div className='name'>
@@ -121,9 +205,9 @@ const MyGroups = () => {
                                     </div>
                                     <div className='button'>
                                         <div className='info'>
-                                            <p>"18/09/2022"</p>
-                                            <br />
                                             <button onClick={() => openGroupPicModal(item)}>Edit</button>
+                                            <br />
+                                            <button onClick={() => openGroupReqModal(item)}>Join Requests</button>
                                         </div>
                                     </div>
                                 </div>
@@ -201,6 +285,61 @@ const MyGroups = () => {
 
 
 
+                    </Typography>
+                </Box>
+            </Modal>
+
+            <Modal
+                className="GroupJoinReq"
+                open={openGroupReq}
+                onClose={handleGroupReqClose}
+                aria-labelledby="modal-modal-title"
+                aria-describedby="modal-modal-description"
+            >
+                <Box className="leftBarBox">
+                    <Typography id="modal-modal-title" variant="h5" component="h2">
+                        Join Requests
+                    </Typography>
+                    <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                        <List sx={{ width: '100%', maxWidth: 400, bgcolor: 'background.paper' }}>
+
+
+                            {   pending.length > 0
+                                ?   
+
+                                pending.map((item, index) => (
+
+                                    <ListItem alignItems="center">
+                                        <ListItemAvatar>
+                                            <Avatar alt="Profile Pic" src={item.MemberProfilePic} sx={{ width: 60, height: 60, marginRight: 4 }} />
+                                        </ListItemAvatar>
+                                        <ListItemText sx={{ marginRight: 35 }}
+                                            primary={item.MemberName}
+                                            secondary={
+                                                <React.Fragment>
+                                                    {"Test"}
+                                                </React.Fragment>
+                                            }
+                                        />
+                                        <button className='groupReqAcceptButton' onClick={() => { handleAcceptRequest(item, index) }}>Accept</button>
+                                        <button className='groupReqRejectButton' onClick={() => { handleRejectRequest(item, index) }}>Reject</button>
+
+                                    </ListItem>
+                                    
+
+                                ))
+
+                                :
+                                <Alert severity="info" style={{ width: "100%" }}>No Join Requests</Alert>
+                            
+                            }
+
+
+
+
+
+
+                        </List>
                     </Typography>
                 </Box>
             </Modal>

@@ -5,13 +5,9 @@ import { AiFillEye, AiFillEyeInvisible } from 'react-icons/ai';
 import { Button, Grid, TextField, Alert, Item } from '@mui/material'
 import Leftbar from '../components/Leftbar';
 import Searchbar from '../components/Searchbar';
-import Friends from '../components/Friends';
-import Groups from '../components/Groups';
-import Chats from '../components/Chats';
+import NotificationLists from '../components/NotificationLists';
 
-
-const Message = () => {
-
+const Notifications = () => {
     const auth = getAuth();
     let [emailVerification, setEmailVerification] = useState(false)
 
@@ -33,16 +29,13 @@ const Message = () => {
                 ?
                 <Grid container spacing={2}>
                     <Grid item xs={2}>
-                        <Leftbar active="message" />
+                        <Leftbar active="notifications" />
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid item xs={10}>
                         <Searchbar />
-                        <Groups />
-                        <Friends item = "message" />
+                        <NotificationLists/>        
                     </Grid>
-                    <Grid item xs={6}>
-                        <Chats/>    
-                    </Grid>
+                    
                 </Grid>
                 :
 
@@ -64,4 +57,4 @@ const Message = () => {
     )
 }
 
-export default Message
+export default Notifications

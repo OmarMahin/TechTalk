@@ -3,18 +3,24 @@ import { BiDotsVerticalRounded } from 'react-icons/bi'
 import { Modal, Box, Typography } from '@mui/material'
 import { getDatabase, ref, onValue, set, push, remove, update } from "firebase/database";
 import { getAuth, getUser } from "firebase/auth";
+import { useDispatch, useSelector } from 'react-redux';
+import { notification } from '../Slice/notificationSlice'
 
 
 const Grouplist = (props) => {
 
     const auth = getAuth()
     const db = getDatabase()
+    let dispatch = useDispatch()
+    let selector = useSelector((state)=>(state))
 
     let [groupModalopen, setGroupModalOpen] = useState(false)
     let [groupname, setGroupName] = useState('')
     let [grouptagline, setGroupTagline] = useState('')
     let [groupList, setGroupList] = useState([])
     let [refresh, setRefresh] = useState(false)
+    let [pendingMembers, setPendingMembers] = useState([])
+    let [members, setMembers] = useState([])
 
     let groupModal = () => {
         setGroupModalOpen(true)
@@ -39,18 +45,42 @@ const Grouplist = (props) => {
             GroupTagline: grouptagline,
             GroupAdmin: auth.currentUser.uid,
             GroupProfilePicture: '',
+            Members: auth.currentUser.uid,
+            Pending: ""
         }).then(() => {
             setGroupModalOpen(false)
             setRefresh(!refresh)
         })
     }
 
+    let handleGroupJoinReq = (item) => {
+        set(push(ref(db, 'notification/')), {
+            message: `"${auth.currentUser.displayName}"` + " wants to join your group "+ `"${item.GroupName}"`,
+            
+            receieve: item.GroupAdmin,
+            seen: "unseen",
+        })
+        let pending = ""
+        onValue(ref(db, "groups/" + item.GroupKey), (item) => {
+            pending = item.val().Pending
+        })
+        update(ref(db, "groups/" + item.GroupKey), {
+            Pending: pending + "," + auth.currentUser.uid
+        })
+        setRefresh(!refresh)
+        
+    }
+
 
     useEffect(() => {
         let grouplist = []
+        let pend = []
+        let mem = []
 
         onValue(ref(db, 'groups'), (snapshot) => {
+            
             snapshot.forEach((item) => {
+                
                 grouplist.push({
                     GroupName: item.val().GroupName,
                     GroupTagline: item.val().GroupTagline,
@@ -58,8 +88,13 @@ const Grouplist = (props) => {
                     GroupKey: item.key,
                     GroupPhotoUrl: item.val().GroupProfilePicture,
                 })
+                pend.push(item.val().Pending)
+                mem.push(item.val().Members)
+                
 
             })
+            setPendingMembers(pend)
+            setMembers(mem)
             setGroupList(grouplist)
         })
 
@@ -76,24 +111,34 @@ const Grouplist = (props) => {
 
             <BiDotsVerticalRounded className='dotIcon' />
             <div className='lists'>
-                {groupList.map((item) => {
+                {groupList.map((item, index) => {
                     if (item.GroupAdmin != auth.currentUser.uid) {
                         return (
                             <div className='box' >
                                 <div className='img'>
                                     {item.GroupPhotoUrl
-                                    ?
-                                    <img src={item.GroupPhotoUrl} />
-                                    :
-                                    <img src={'./assets/images/GroupAvaterPic.png'} />
-                    }
+                                        ?
+                                        <img src={item.GroupPhotoUrl} />
+                                        :
+                                        <img src={'./assets/images/GroupAvaterPic.png'} />
+                                    }
                                 </div>
                                 <div className='name'>
                                     <h2>{item.GroupName}</h2>
                                     <h4>{item.GroupTagline}</h4>
                                 </div>
                                 <div className='button'>
-                                    <button>Join</button>
+                                    {pendingMembers[index].includes(auth.currentUser.uid)
+                                        ?
+                                        <button onClick={() => { handleGroupJoinReq(item) }} >Pending</button>
+                                        :
+                                        members[index].includes(auth.currentUser.uid)
+                                            ?
+                                            ""
+                                            :
+                                            <button onClick={() => { handleGroupJoinReq(item) }} >Join</button>
+                                    }
+
                                 </div>
                             </div>
                         )

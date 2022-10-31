@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { activeChat } from '../Slice/activeChatUser'
 import { getDatabase, ref, onValue, set, push, remove, update } from "firebase/database"
 import { getAuth, getUser } from "firebase/auth"
-import { Modal, Box, Typography, LinearProgress } from '@mui/material'
+import { Modal, Box, Typography, LinearProgress, Alert } from '@mui/material'
 import { getStorage, ref as s_ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import moment from 'moment/moment'
 
@@ -21,6 +21,7 @@ const Chats = () => {
     let [msg, setMsg] = useState('')
     let [file, setFile] = useState('')
     let [singleMsg, setSingleMsg] = useState([])
+    let [groupMsg, setGroupMsg] = useState([])
     let [uploadModalopen, setUploadModalOpen] = useState(false)
     let [progress, setProgress] = useState("")
 
@@ -31,7 +32,16 @@ const Chats = () => {
     let sendMessage = () => {
         if (msg != '') {
             if (activeUser.status == "group") {
-
+                set(push(ref(db, "groupMessages")), {
+                    senderId: auth.currentUser.uid,
+                    senderName: auth.currentUser.displayName,
+                    receiverIds: activeUser.Members,
+                    groupId: activeUser.id,
+                    date: `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}-${new Date().getHours()}-${new Date().getMinutes()}-${new Date().getSeconds()}`,
+                    message: msg
+                }).then(() => {
+                    setMsg('')
+                })
             }
             else if (activeUser.status == "single") {
                 set(push(ref(db, "singleMessages")), {
@@ -58,39 +68,76 @@ const Chats = () => {
     }
 
     let uploadImage = () => {
-        const storageRef = s_ref(storage, "singleImageFiles/" + file.name);
-        const upload = uploadBytesResumable(storageRef, file)
+        if (activeUser.status == "single") {
+            const storageRef = s_ref(storage, "singleImageFiles/" + file.name);
+            const upload = uploadBytesResumable(storageRef, file)
 
-        upload.on('state_changed',
-            (snapshot) => {
+            upload.on('state_changed',
+                (snapshot) => {
 
-                const progressValue = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                setProgress(progressValue)
-            },
-            (error) => {
+                    const progressValue = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    setProgress(progressValue)
+                },
+                (error) => {
 
-                console.log(error)
-            },
-            () => {
+                    console.log(error)
+                },
+                () => {
 
-                getDownloadURL(upload.snapshot.ref).then((downloadURL) => {
-                    if (file != "") {
-                        set(push(ref(db, "singleMessages")), {
-                            senderId: auth.currentUser.uid,
-                            senderName: auth.currentUser.displayName,
-                            receiverId: activeUser.id,
-                            receiverName: activeUser.name,
-                            date: `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}-${new Date().getHours()}-${new Date().getMinutes()}-${new Date().getSeconds()}`,
-                            image: downloadURL
-                        }).then(() => {
-                            setUploadModalOpen(false)
-                            setFile("")
-                            setProgress("")
-                        })
-                    }
-                });
-            }
-        )
+                    getDownloadURL(upload.snapshot.ref).then((downloadURL) => {
+                        if (file != "") {
+                            set(push(ref(db, "singleMessages")), {
+                                senderId: auth.currentUser.uid,
+                                senderName: auth.currentUser.displayName,
+                                receiverId: activeUser.id,
+                                receiverName: activeUser.name,
+                                date: `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}-${new Date().getHours()}-${new Date().getMinutes()}-${new Date().getSeconds()}`,
+                                image: downloadURL
+                            }).then(() => {
+                                setUploadModalOpen(false)
+                                setFile("")
+                                setProgress("")
+                            })
+                        }
+                    });
+                }
+            )
+        }
+        else if (activeUser.status == 'group'){
+            const storageRef = s_ref(storage, "groupImageFiles/" + file.name);
+            const upload = uploadBytesResumable(storageRef, file)
+
+            upload.on('state_changed',
+                (snapshot) => {
+
+                    const progressValue = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    setProgress(progressValue)
+                },
+                (error) => {
+
+                    console.log(error)
+                },
+                () => {
+
+                    getDownloadURL(upload.snapshot.ref).then((downloadURL) => {
+                        if (file != "") {
+                            set(push(ref(db, "groupMessages")), {
+                                senderId: auth.currentUser.uid,
+                                senderName: auth.currentUser.displayName,
+                                receiverIds: activeUser.Members,
+                                groupId: activeUser.id,
+                                date: `${new Date().getFullYear()}-${new Date().getMonth() + 1}-${new Date().getDate()}-${new Date().getHours()}-${new Date().getMinutes()}-${new Date().getSeconds()}`,
+                                image: downloadURL
+                            }).then(() => {
+                                setUploadModalOpen(false)
+                                setFile("")
+                                setProgress("")
+                            })
+                        }
+                    });
+                }
+            )
+        }
     }
 
     useEffect(() => {
@@ -103,6 +150,17 @@ const Chats = () => {
             })
 
             setSingleMsg(messages)
+        })
+
+        onValue(ref(db, 'groupMessages'), (snapshot) => {
+            let messages = []
+            snapshot.forEach(item => {
+                messages.push(
+                    item.val()
+                )
+            })
+
+            setGroupMsg(messages)
         })
     }, [])
 
@@ -131,50 +189,104 @@ const Chats = () => {
 
 
                 {
-                    singleMsg.map((item) => (
-
-
-                        (item.senderId == auth.currentUser.uid && item.receiverId == activeUser.id) ||
-                            (item.senderId == activeUser.id && item.receiverId == auth.currentUser.uid)
+                    activeUser.status == "group"
+                        ?
+                        activeUser.Members.includes(auth.currentUser.uid)
                             ?
-                            item.senderId == auth.currentUser.uid
-                                ?
-                                item.message
+
+                            groupMsg.map((item) => (
+
+
+                                ((item.senderId == auth.currentUser.uid || item.receiverIds.includes(auth.currentUser.uid)) && activeUser.id == item.groupId)
                                     ?
-                                    <div style={messageSend} className='messageBox send'>
-                                        <p style={messageSendBackground} >{item.message}</p>
-                                        <p style={dateSend} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
-                                    </div>
+                                    item.senderId == auth.currentUser.uid
+                                        ?
+                                        item.message
+                                            ?
+                                            <div style={messageSend} className='messageBox send'>
+
+                                                <p style={messageSendBackground} >{item.message}</p>
+                                                <p style={dateSend} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
+                                            </div>
+                                            :
+
+                                            <div style={messageSend} className='messageBox send'>
+                                                <div className='imgMessage' style={messageSendBackground}>
+                                                    <img src={item.image} ></img>
+                                                </div>
+                                                <p style={dateSend} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
+                                            </div>
+
+
+                                        :
+                                        item.message
+                                            ?
+                                            <div style={messageReceive} className='messageBox receive'>
+                                                <p style={messageReceiveBackground} >{item.message}</p>
+                                                <p style={dateReceive} className='date'>{item.senderName} , {moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
+                                            </div>
+                                            :
+                                            <div style={messageReceive} className='messageBox receive'>
+                                                <div className='imgMessage' style={messageReceiveBackground}>
+                                                    <img src={item.image} ></img>
+                                                </div>
+                                                <p style={dateReceive} className='date'>{item.senderName} , {moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
+                                            </div>
+
                                     :
-
-                                    <div style={messageSend} className='messageBox send'>
-                                        <div className='imgMessage' style={messageSendBackground}>
-                                            <img src={item.image} ></img>
-                                        </div>
-                                        <p style={dateSend} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
-                                    </div>
+                                    ""
 
 
-                                :
-                                item.message
-                                    ?
-                                    <div style={messageReceive} className='messageBox receive'>
-                                        <p style={messageReceiveBackground} >{item.message}</p>
-                                        <p style={dateReceive} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
-                                    </div>
-                                    :
-                                    <div style={messageReceive} className='messageBox receive'>
-                                        <div className='imgMessage' style={messageReceiveBackground}>
-                                            <img src={item.image} ></img>
-                                        </div>
-                                        <p style={dateReceive} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
-                                    </div>
+                            ))
 
                             :
                             ""
 
+                        :
+                        singleMsg.map((item) => (
 
-                    ))
+
+                            (item.senderId == auth.currentUser.uid && item.receiverId == activeUser.id) ||
+                                (item.senderId == activeUser.id && item.receiverId == auth.currentUser.uid)
+                                ?
+                                item.senderId == auth.currentUser.uid
+                                    ?
+                                    item.message
+                                        ?
+                                        <div style={messageSend} className='messageBox send'>
+                                            <p style={messageSendBackground} >{item.message}</p>
+                                            <p style={dateSend} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
+                                        </div>
+                                        :
+
+                                        <div style={messageSend} className='messageBox send'>
+                                            <div className='imgMessage' style={messageSendBackground}>
+                                                <img src={item.image} ></img>
+                                            </div>
+                                            <p style={dateSend} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
+                                        </div>
+
+
+                                    :
+                                    item.message
+                                        ?
+                                        <div style={messageReceive} className='messageBox receive'>
+                                            <p style={messageReceiveBackground} >{item.message}</p>
+                                            <p style={dateReceive} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
+                                        </div>
+                                        :
+                                        <div style={messageReceive} className='messageBox receive'>
+                                            <div className='imgMessage' style={messageReceiveBackground}>
+                                                <img src={item.image} ></img>
+                                            </div>
+                                            <p style={dateReceive} className='date'>{moment(item.date, "YYYYMMDD h:mm:ss a").calendar()}</p>
+                                        </div>
+
+                                :
+                                ""
+
+
+                        ))
 
 
 
@@ -184,13 +296,36 @@ const Chats = () => {
 
             </div>
 
-            <div className='sendPart'>
-                <div className={activeUser.blocked ? 'input inputBlock' : 'input'}>
-                    <input type={'text'} placeholder='Message' onChange={handleMessage} value={msg}></input>
-                    <AiOutlineCamera className='camera' onClick={() => setUploadModalOpen(true)} />
+            {activeUser.status == "group"
+                ?
+                activeUser.Members.includes(auth.currentUser.uid)
+                    ?
+                    <div className='sendPart'>
+
+                        <div className={activeUser.blocked ? 'input inputBlock' : 'input'}>
+                            <input type={'text'} placeholder='Message' onChange={handleMessage} value={msg}></input>
+                            <AiOutlineCamera className='camera' onClick={() => setUploadModalOpen(true)} />
+                        </div>
+                        <button onClick={sendMessage}><IoIosSend /></button>
+                    </div>
+                    :
+                    <div className='sendPart'>
+                        <Alert variant="filled" severity="error" style={{ width: "100%" }}>
+                            You are not a member of the {activeUser.name} group.
+                        </Alert>
+
+                    </div>
+                :
+                <div className='sendPart'>
+
+                    <div className={activeUser.blocked ? 'input inputBlock' : 'input'}>
+                        <input type={'text'} placeholder='Message' onChange={handleMessage} value={msg}></input>
+                        <AiOutlineCamera className='camera' onClick={() => setUploadModalOpen(true)} />
+                    </div>
+                    <button onClick={sendMessage}><IoIosSend /></button>
                 </div>
-                <button onClick={sendMessage}><IoIosSend /></button>
-            </div>
+            }
+
 
 
             <Modal
@@ -257,6 +392,10 @@ let messageSendBackground = {
 
 let dateReceive = {
     left: "0",
+}
+
+let sender = {
+    top: "0",
 }
 
 let dateSend = {

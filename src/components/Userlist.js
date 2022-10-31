@@ -82,6 +82,12 @@ const Userlist = () => {
             senderName: auth.currentUser.displayName,
             senderId: auth.currentUser.uid,
 
+        }). then(()=>{
+            set(push(ref(db, 'notification/')), {
+                message: `"${auth.currentUser.displayName}"` + " has sent you a friend request",
+                receieve: info.id,
+                seen: "unseen",
+            })
         })
         setChange(!change)
     }
@@ -149,8 +155,6 @@ const Userlist = () => {
 
 
                 })}
-
-
 
 
             </div>

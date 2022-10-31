@@ -3,15 +3,17 @@ import { BsGear } from 'react-icons/bs';
 import { RiLogoutBoxRLine } from 'react-icons/ri';
 import { AiOutlineMessage, AiOutlineHome, AiOutlineBell, AiOutlineCloudUpload } from 'react-icons/ai';
 import { getAuth, signOut, onAuthStateChanged, updateProfile, getUser } from "firebase/auth";
-import { getDatabase, ref as fd_ref, update } from "firebase/database";
+import { getDatabase, ref as fd_ref, update, onValue } from "firebase/database";
 import { Link, useNavigate } from 'react-router-dom'
 import { Modal, Box, Typography } from '@mui/material'
 import SendIcon from '@mui/icons-material/Send';
 import LoadingButton from '@mui/lab/LoadingButton'
 import { getStorage, ref as fs_ref, uploadString, getDownloadURL } from "firebase/storage";
-
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
+
+import { useDispatch, useSelector } from 'react-redux';
+import { notification, pageReload } from '../Slice/notificationSlice'
 
 const Leftbar = (props) => {
 
@@ -36,6 +38,7 @@ const Leftbar = (props) => {
   const [cropper, setCropper] = useState();
 
   let userLogout = () => {
+
     signOut(auth).then(() => {
 
       navigate('/login')
@@ -77,7 +80,7 @@ const Leftbar = (props) => {
     };
     reader.readAsDataURL(files[0]);
   }
-  
+
 
   const getCropData = () => {
     setLoading(true)
@@ -85,7 +88,7 @@ const Leftbar = (props) => {
     const image = cropper.getCroppedCanvas().toDataURL()
     uploadString(storageRef, image, 'data_url').then((snapshot) => {
       getDownloadURL(storageRef).then((url) => {
-      
+
         updateProfile(auth.currentUser, {
           photoURL: url
         }).then(() => {
@@ -93,7 +96,7 @@ const Leftbar = (props) => {
           setLoading(false)
           setImage('')
 
-          update(fd_ref(db, "users/"+auth.currentUser.uid),{
+          update(fd_ref(db, "users/" + auth.currentUser.uid), {
             userProfilePicture: auth.currentUser.photoURL,
           })
 
@@ -121,6 +124,39 @@ const Leftbar = (props) => {
   }, [])
 
 
+  let dispatch = useDispatch()
+  let selector = useSelector((state) => (state))
+
+
+  let [notifiLists, setNotificationLists] = useState([])
+  let [lastValue, setLastAmount] = useState("")
+
+  let handleNotificationClick = ()=>{
+
+    dispatch(pageReload(!selector.notification.refresh))
+  }
+
+  useEffect(() => {
+
+
+    onValue(fd_ref(db, "notification"), (snapshot) => {
+      let notifi = []
+      snapshot.forEach((item) => {
+        if (item.val().seen == "unseen" && item.val().receieve == auth.currentUser.uid) {
+          notifi.push(item.val())
+          
+        }
+
+      })
+      setNotificationLists(notifi)
+      dispatch(notification(notifi.length))
+
+    })
+
+
+  }, [])
+
+
   return (
     <div className='leftbar'>
       <div className='profilePic'>
@@ -136,11 +172,23 @@ const Leftbar = (props) => {
 
           <li className={props.active == 'home' ? 'active' : 'notActive'}>
             <Link to={'/home'}><AiOutlineHome className='icon ' /></Link>
-            </li>
+          </li>
           <li className={props.active == 'message' ? 'active' : 'notActive'}>
             <Link to={'/message'}><AiOutlineMessage className='icon' /></Link>
-            </li>
-          <li className={props.active == 'notifications' ? 'active' : 'notActive'}><AiOutlineBell className='icon' /></li>
+
+          </li>
+          <li className={props.active == 'notifications' ? 'active notificationNumber1' : 'notActive notificationNumber2'}>
+            <Link to={'/notifications'} onClick={()=>{handleNotificationClick()}}><AiOutlineBell className='icon' /></Link>
+            {selector.notification.amount > 9
+              ?
+              <span>9+</span>
+              :
+              <span>{selector.notification.amount}</span>
+            }
+
+          </li>
+
+
           <li className={props.active == 'settings' ? 'active' : 'notActive'}><BsGear className='icon' /></li>
           <li><RiLogoutBoxRLine className='icon' onClick={userLogout} /></li>
 
@@ -175,7 +223,7 @@ const Leftbar = (props) => {
                 <img className='currentPic' src={auth.currentUser.photoURL} alt='profilePic' />
 
             }
-            
+
             <input type={"file"} className='picUpload' onChange={(item) => handlePicUpload(item)}></input>
 
             <Cropper
@@ -198,21 +246,21 @@ const Leftbar = (props) => {
             />
 
             {image && <LoadingButton
-                className='cropButton'
-                loading={loading}
-                loadingPosition="end"
-                variant="contained"
-                onClick={getCropData}
-              >
-                {loading
-              ?
-              "Uploading"
-              :
-              "Upload Image"
+              className='cropButton'
+              loading={loading}
+              loadingPosition="end"
+              variant="contained"
+              onClick={getCropData}
+            >
+              {loading
+                ?
+                "Uploading"
+                :
+                "Upload Image"
               }
-              </LoadingButton>}
+            </LoadingButton>}
 
-            
+
 
           </Typography>
         </Box>
